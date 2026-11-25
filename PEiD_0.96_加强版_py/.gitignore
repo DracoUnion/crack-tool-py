@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+
+# 原 GUI 程序的插件/SDK/发布目录 (二进制, Python 重写版不使用, 仅随资源复制到本地)
+plugins/
+pluginsdk/
+Release/
