@@ -89103,3 +89103,239 @@
 [QString::FromUtf8] 原始字符串: $$ WINERROR: no valid name record to FF0000000000FF96...fixed
 [QString::FromUtf8] 长度超过50字符，跳过替换
 [QString::FromUtf8] 原始字符串:  @:00000000FFFFD810
+[QTranslate] 原始字符串: Please wait...
+[QString::FromUtf8] 原始字符串: Initializing the cache subsystem
+[QString::FromUtf8] 原始字符串:  76570624  9347 8192 allocating memory for virtual array...
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串:  76570624  9347 8192 allocating memory for virtual array...
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串:    262144    32 8192 allocating memory for name pointers...
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串:    262144    32 8192 allocating memory for name pointers...
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: -----------------------------------------------------------------
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: -----------------------------------------------------------------
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: 107462656            total memory allocated
+[QString::FromUtf8] 原始字符串: 141243781: overlap with the previous item at 141243780 has been detected
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: 141243781: overlap with the previous item at 141243780 has been detected
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: Loading processor module D:\\Program Files\\IDA94ProBable_CN\\procs\\pc.dll for metapc...OK
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: Loading processor module D:\\Program Files\\IDA94ProBable_CN\\procs\\pc.dll for metapc...OK
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: Loading type libraries...
+[QString::FromUtf8] 原始字符串: Loading type libraries...
+[QTranslate] 原始字符串: Please wait...
+[QTranslate] 原始字符串: Please wait...
+[QString::FromUtf8] 原始字符串: Upgrading the database
+[QString::FromUtf8] 原始字符串: BUSY
+[QTranslate] 原始字符串: Please wait...
+[QString::FromUtf8] 原始字符串: detect and parse golang metadata
+[QString::FromUtf8] 原始字符串: Edit/Other/Toggle border
+[QString::FromUtf8] 原始字符串: Default:Edit
+[QString::FromUtf8] 原始字符串: Default:Edit
+[QString::FromUtf8] 原始字符串: Default:Edit
+[QString::FromUtf8] 原始字符串: :/IDAG/resources/app/pro/small.png
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: Error
+[QString::FromUtf8] 原始字符串: MsgBoxCritical
+[QString::FromUtf8] 原始字符串: Switch '-oD:\\src\\crack-tool-py\\BinaryNinjaPersonal_py\\binaryninja_analysis.idb' can be used only when loading a new file
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QTranslate] 原始字符串: &Yes
+[QString::FromUtf8] 原始字符串: OK
+[QTranslate] 原始字符串: Help
+[QTranslate] 精确匹配: 帮助
+[QString::FromUtf8] 原始字符串: Autoanalysis subsystem has been initialized.
+[QString::FromUtf8] 原始字符串: Autoanalysis subsystem has been initialized.
+[QString::FromUtf8] 原始字符串: D:\\Program Files\\IDA94ProBable_CN\\plugins\\capa_explorer\\capa_explorer.py: No module named 'capa'
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: D:\\Program Files\\IDA94ProBable_CN\\plugins\\capa_explorer\\capa_explorer.py: No module named 'capa'
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: Traceback (most recent call last):
+[QString::FromUtf8] 原始字符串:   File "D:\\Program Files\\IDA94ProBable_CN\\python\\ida_idaapi.py", line 721, in IDAPython_ExecScript
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串:   File "D:\\Program Files\\IDA94ProBable_CN\\python\\ida_idaapi.py", line 721, in IDAPython_ExecScript
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串:     exec(code, g)
+[QString::FromUtf8] 原始字符串:     exec(code, g)
+[QString::FromUtf8] 原始字符串:   File "D:\\Program Files\\IDA94ProBable_CN\\plugins\\capa_explorer\\capa_explorer.py", line 16, in <module>
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串:   File "D:\\Program Files\\IDA94ProBable_CN\\plugins\\capa_explorer\\capa_explorer.py", line 16, in <module>
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串:     from capa.ida.plugin import CapaExplorerPlugin
+[QString::FromUtf8] 原始字符串:     from capa.ida.plugin import CapaExplorerPlugin
+[QString::FromUtf8] 原始字符串: ModuleNotFoundError: No module named 'capa'
+[QString::FromUtf8] 原始字符串: ModuleNotFoundError: No module named 'capa'
+[QString::FromUtf8] 原始字符串: D:\\Program Files\\IDA94ProBable_CN\\plugins\\findcrypt3.py: No module named 'yara_x'
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: D:\\Program Files\\IDA94ProBable_CN\\plugins\\findcrypt3.py: No module named 'yara_x'
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: Traceback (most recent call last):
+[QString::FromUtf8] 原始字符串:   File "D:\\Program Files\\IDA94ProBable_CN\\python\\ida_idaapi.py", line 721, in IDAPython_ExecScript
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串:   File "D:\\Program Files\\IDA94ProBable_CN\\python\\ida_idaapi.py", line 721, in IDAPython_ExecScript
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串:     exec(code, g)
+[QString::FromUtf8] 原始字符串:     exec(code, g)
+[QString::FromUtf8] 原始字符串:   File "D:\\Program Files\\IDA94ProBable_CN\\plugins\\findcrypt3.py", line 11, in <module>
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串:   File "D:\\Program Files\\IDA94ProBable_CN\\plugins\\findcrypt3.py", line 11, in <module>
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串:     import yara_x
+[QString::FromUtf8] 原始字符串:     import yara_x
+[QString::FromUtf8] 原始字符串: ModuleNotFoundError: No module named 'yara_x'
+[QString::FromUtf8] 原始字符串: ModuleNotFoundError: No module named 'yara_x'
+[QString::FromUtf8] 原始字符串: findHash v0.2 (ARM32/ARM64) loaded
+[QString::FromUtf8] 原始字符串: D:\\Program Files\\IDA94ProBable_CN\\plugins\\HookLibraryx64.dll: not IDA DLL file
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: D:\\Program Files\\IDA94ProBable_CN\\plugins\\HookLibraryx64.dll: not IDA DLL file
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: LoadLibrary(D:\\Program Files\\IDA94ProBable_CN\\plugins\\HookLibraryx86.dll) error: %1 不是有效的 Win32 应用程序。
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: LoadLibrary(D:\\Program Files\\IDA94ProBable_CN\\plugins\\HookLibraryx86.dll) error: %1 不是有效的 Win32 应用程序。
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: D:\\Program Files\\IDA94ProBable_CN\\plugins\\HookLibraryx86.dll: can't load file
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: D:\\Program Files\\IDA94ProBable_CN\\plugins\\HookLibraryx86.dll: can't load file
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: D:\\Program Files\\IDA94ProBable_CN\\plugins\\keypatch.py: No module named 'keystone'
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: D:\\Program Files\\IDA94ProBable_CN\\plugins\\keypatch.py: No module named 'keystone'
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: Traceback (most recent call last):
+[QString::FromUtf8] 原始字符串:   File "D:\\Program Files\\IDA94ProBable_CN\\python\\ida_idaapi.py", line 721, in IDAPython_ExecScript
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串:   File "D:\\Program Files\\IDA94ProBable_CN\\python\\ida_idaapi.py", line 721, in IDAPython_ExecScript
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串:     exec(code, g)
+[QString::FromUtf8] 原始字符串:     exec(code, g)
+[QString::FromUtf8] 原始字符串:   File "D:\\Program Files\\IDA94ProBable_CN\\plugins\\keypatch.py", line 53, in <module>
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串:   File "D:\\Program Files\\IDA94ProBable_CN\\plugins\\keypatch.py", line 53, in <module>
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串:     from keystone import *
+[QString::FromUtf8] 原始字符串: ModuleNotFoundError: No module named 'keystone'
+[QString::FromUtf8] 原始字符串: ModuleNotFoundError: No module named 'keystone'
+[QString::FromUtf8] 原始字符串: WAITING 
+[QString::FromUtf8] 原始字符串: Plugins
+[QString::FromUtf8] 原始字符串: IDA Feeds
+[QString::FromUtf8] 原始字符串: IDA Feeds
+[QString::FromUtf8] 原始字符串: Ctrl+Shift+F5
+[QString::FromUtf8] 原始字符串: Ctrl+Shift+F5
+[QTranslate] 原始字符串: Ctrl
+[QTranslate] 原始字符串: Shift
+[QTranslate] 原始字符串: Alt
+[QTranslate] 原始字符串: Meta
+[QTranslate] 原始字符串: Num
+[QString::FromUtf8] 原始字符串: Ctrl+Shift+F5
+[QTranslate] 原始字符串: Ctrl
+[QTranslate] 原始字符串: Shift
+[QTranslate] 原始字符串: Alt
+[QTranslate] 原始字符串: Meta
+[QTranslate] 原始字符串: Num
+[QString::FromUtf8] 原始字符串: Hex-Rays IDA Feeds Plugin
+[QString::FromUtf8] 原始字符串: 单字节字符串编码选择
+[QString::FromUtf8] 原始字符串: 单字节字符串编码选择
+[QString::FromUtf8] 原始字符串: 注册中文编码并提供右键单字节编码选择子菜单
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: BinExport
+[QString::FromUtf8] 原始字符串: BinExport
+[QString::FromUtf8] 原始字符串: Export to SQL RE-DB, BinDiff binary or text dump
+[QString::FromUtf8] 原始字符串: BinDiff
+[QString::FromUtf8] 原始字符串: BinDiff
+[QString::FromUtf8] 原始字符串: Ctrl+6
+[QString::FromUtf8] 原始字符串: Ctrl+6
+[QTranslate] 原始字符串: Ctrl
+[QTranslate] 原始字符串: Shift
+[QTranslate] 原始字符串: Alt
+[QTranslate] 原始字符串: Meta
+[QTranslate] 原始字符串: Num
+[QString::FromUtf8] 原始字符串: Ctrl+6
+[QTranslate] 原始字符串: Ctrl
+[QTranslate] 原始字符串: Shift
+[QTranslate] 原始字符串: Alt
+[QTranslate] 原始字符串: Meta
+[QTranslate] 原始字符串: Num
+[QString::FromUtf8] 原始字符串: Structural comparison of executable objects
+[QString::FromUtf8] 原始字符串: Plugins
+[QString::FromUtf8] 原始字符串: IDA Feeds
+[QString::FromUtf8] 原始字符串: IDA Feeds
+[QString::FromUtf8] 原始字符串: Ctrl+Shift+F5
+[QTranslate] 原始字符串: Ctrl
+[QTranslate] 原始字符串: Shift
+[QTranslate] 原始字符串: Alt
+[QTranslate] 原始字符串: Meta
+[QTranslate] 原始字符串: Num
+[QString::FromUtf8] 原始字符串: Ctrl+Shift+F5
+[QString::FromUtf8] 原始字符串: Ctrl+Shift+F5
+[QTranslate] 原始字符串: Ctrl
+[QTranslate] 原始字符串: Shift
+[QTranslate] 原始字符串: Alt
+[QTranslate] 原始字符串: Meta
+[QTranslate] 原始字符串: Num
+[QString::FromUtf8] 原始字符串: Ctrl+Shift+F5
+[QTranslate] 原始字符串: Ctrl
+[QTranslate] 原始字符串: Shift
+[QTranslate] 原始字符串: Alt
+[QTranslate] 原始字符串: Meta
+[QTranslate] 原始字符串: Num
+[QString::FromUtf8] 原始字符串: Hex-Rays IDA Feeds Plugin
+[QString::FromUtf8] 原始字符串: 单字节字符串编码选择
+[QString::FromUtf8] 原始字符串: 单字节字符串编码选择
+[QString::FromUtf8] 原始字符串: 注册中文编码并提供右键单字节编码选择子菜单
+[QString::FromUtf8] 长度超过50字符，跳过替换
+[QString::FromUtf8] 原始字符串: BinExport
+[QString::FromUtf8] 原始字符串: BinExport
+[QString::FromUtf8] 原始字符串: Export to SQL RE-DB, BinDiff binary or text dump
+[QString::FromUtf8] 原始字符串: BinDiff
+[QString::FromUtf8] 原始字符串: BinDiff
+[QString::FromUtf8] 原始字符串: Ctrl+6
+[QTranslate] 原始字符串: Ctrl
+[QTranslate] 原始字符串: Shift
+[QTranslate] 原始字符串: Alt
+[QTranslate] 原始字符串: Meta
+[QTranslate] 原始字符串: Num
+[QString::FromUtf8] 原始字符串: Ctrl+6
+[QString::FromUtf8] 原始字符串: Ctrl+6
+[QTranslate] 原始字符串: Ctrl
+[QTranslate] 原始字符串: Shift
+[QTranslate] 原始字符串: Alt
+[QTranslate] 原始字符串: Meta
+[QTranslate] 原始字符串: Num
+[QString::FromUtf8] 原始字符串: Ctrl+6
+[QTranslate] 原始字符串: Ctrl
+[QTranslate] 原始字符串: Shift
+[QTranslate] 原始字符串: Alt
+[QTranslate] 原始字符串: Meta
+[QTranslate] 原始字符串: Num
+[QString::FromUtf8] 原始字符串: Structural comparison of executable objects
+[QString::FromUtf8] 原始字符串: File/BinDiff
+[QString::FromUtf8] 原始字符串: File
+[QString::FromUtf8] 原始字符串: File/LoadFile/BinDiffResults
+[QString::FromUtf8] 原始字符串: File
+[QString::FromUtf8] 原始字符串: File/ProduceFile/SaveBinDiffResults
+[QString::FromUtf8] 原始字符串: File
+[QString::FromUtf8] 原始字符串: Edit/Comments/ImportSymbolsAndComments
+[QString::FromUtf8] 原始字符串: Default:Edit
+[QString::FromUtf8] 原始字符串: Default:Edit
+[QString::FromUtf8] 原始字符串: Default:Edit
+[QString::FromUtf8] 原始字符串: View/BinDiff/MatchedFunctions
+[QString::FromUtf8] 原始字符串: View
+[QString::FromUtf8] 精确匹配: 视图
+[QString::FromUtf8] 原始字符串: View/BinDiff/Statistics
+[QString::FromUtf8] 原始字符串: View
+[QString::FromUtf8] 精确匹配: 视图
+[QString::FromUtf8] 原始字符串: View/BinDiff/PrimaryUnmatched
+[QString::FromUtf8] 原始字符串: View
+[QString::FromUtf8] 精确匹配: 视图
+[QString::FromUtf8] 原始字符串: View/BinDiff/SecondaryUnmatched
+[QString::FromUtf8] 原始字符串: View
+[QString::FromUtf8] 精确匹配: 视图
+[QString::FromUtf8] 原始字符串: bindiff:view_bindiff
+[QString::FromUtf8] 原始字符串: IDC
+[QString::FromUtf8] 原始字符串: Enter IDC expressions or statements
+[IDAHook] 钩子卸载成功
+=== 日志结束 ===
