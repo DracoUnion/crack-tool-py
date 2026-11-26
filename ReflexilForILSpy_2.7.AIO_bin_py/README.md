@@ -26,3 +26,10 @@ python main.py --help
 - 对真实 .NET 程序集正确识别 CLR 版本；非 .NET 文件被跳过。
 
 无第三方依赖，纯标准库。
+
+
+## 逐函数逆向分析（深入）
+
+原程序：`ReflexilForILSpy_2.7.AIO_bin/`
+
+为 ILSpy 的 **IL 编辑插件**，无独立主 EXE，随 ILSpy 宿主运行；无独立逻辑可移植。

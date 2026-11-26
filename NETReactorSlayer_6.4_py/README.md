@@ -26,3 +26,10 @@ python main.py --help
 - 对真实 .NET 程序集正确识别 CLR 版本；非 .NET 文件被跳过。
 
 无第三方依赖，纯标准库。
+
+
+## 逐函数逆向分析（深入）
+
+原程序：`NETReactorSlayer_6.4/NETReactorSlayer.exe`
+
+NETReactorSlayer.CLI.exe 为 7KB 薄包装转交核心；核心程序反编译报错（**被混淆**），逐函数逆向被混淆阻断。已移植 CLI 契约。

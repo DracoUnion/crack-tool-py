@@ -26,3 +26,10 @@ python main.py --help
 - 对真实 .NET 程序集正确识别 CLR 版本；非 .NET 文件被跳过。
 
 无第三方依赖，纯标准库。
+
+
+## 逐函数逆向分析（深入）
+
+原程序：`ILHelper/ILHelper.exe`
+
+x32dbg 反汇编：导入表仅 `lstrcpy`/`InitCommonControls`（其余 API 均动态 GetProcAddress 解析），二进制内无任何 IL 助记符/元数据字符串——典型的**加壳/保护**原生程序。逐函数逆向被壳阻断，无可读 IL 逻辑可移植；需先脱壳（x32dbg 运行到 OEP dump）后再分析。

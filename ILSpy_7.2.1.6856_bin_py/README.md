@@ -26,3 +26,10 @@ python main.py --help
 - 对真实 .NET 程序集正确识别 CLR 版本；非 .NET 文件被跳过。
 
 无第三方依赖，纯标准库。
+
+
+## 逐函数逆向分析（深入）
+
+原程序：`ILSpy_7.2.1.6856_bin/ILSpy.exe`
+
+ILSpy 为 WPF 图形反编译器，引擎为 ICSharpCode.Decompiler（可反编译、真实名，但数十 MB）。已移植 ilspycmd 风格 CLI 契约；去编译引擎未逐行移植（无 Python 等价）。

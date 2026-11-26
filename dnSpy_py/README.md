@@ -41,3 +41,9 @@ python main.py -r c:\my\files -o c:\my\output
 - 非 .NET 文件被跳过。
 
 无第三方依赖，纯标准库。
+
+## 逐函数逆向分析（深入）
+
+原程序：`dnSpy/dnSpy.Console.exe + dnlib/dnSpy.Decompiler`
+
+反编译确认 dnSpy.Console 仅解析 21 选项后调用 `DnSpyDecompiler.Run`，真正反编译在 dnlib + dnSpy.Decompiler（数十 MB、多程序集）。已逐函数移植 dnSpy.Console 的命令解析契约；去编译引擎（dnlib 元数据/IL 操作）无 Python 等价库，未逐行移植。

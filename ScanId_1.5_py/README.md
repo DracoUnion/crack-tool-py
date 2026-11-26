@@ -26,3 +26,10 @@ python main.py --help
 - 对真实 .NET 程序集正确识别 CLR 版本；非 .NET 文件被跳过。
 
 无第三方依赖，纯标准库。
+
+
+## 逐函数逆向分析（深入）
+
+原程序：`ScanId_1.5/ScanId.exe`
+
+反编译显示类名为 `ykSTlfndjcWO4c8Wm7` 等（**被混淆**），且核心检测在 de4dot 库内。逐函数逆向被混淆阻断；已移植 CLI 契约与 .NET 识别。

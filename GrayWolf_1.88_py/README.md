@@ -26,3 +26,10 @@ python main.py --help
 - 对真实 .NET 程序集正确识别 CLR 版本；非 .NET 文件被跳过。
 
 无第三方依赖，纯标准库。
+
+
+## 逐函数逆向分析（深入）
+
+原程序：`GrayWolf_1.88/GrayWolf.exe`
+
+可反编译（真实名，非混淆），核心为 Mono.Cecil 去混淆/解包（SaveSupport/MethodEditorIL 等，数十 MB）。已移植 CLI 契约与 .NET 识别；去混淆引擎未逐行移植。

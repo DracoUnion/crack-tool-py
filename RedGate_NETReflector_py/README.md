@@ -26,3 +26,10 @@ python main.py --help
 - 对真实 .NET 程序集正确识别 CLR 版本；非 .NET 文件被跳过。
 
 无第三方依赖，纯标准库。
+
+
+## 逐函数逆向分析（深入）
+
+原程序：`RedGate_NETReflector/ReflectorInstaller.exe`
+
+为 .NET Reflector 的**安装器**，无独立逆向分析功能可移植。

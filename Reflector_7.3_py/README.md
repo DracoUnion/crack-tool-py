@@ -26,3 +26,10 @@ python main.py --help
 - 对真实 .NET 程序集正确识别 CLR 版本；非 .NET 文件被跳过。
 
 无第三方依赖，纯标准库。
+
+
+## 逐函数逆向分析（深入）
+
+原程序：`Reflector_7.3/ReflectorCmd.exe`
+
+反编译确认 ReflectorCmd 是 .NET Reflector 的**命令行启动器**（仅打印 banner 并把参数转交 Reflector GUI），无独立逆向逻辑可移植。
