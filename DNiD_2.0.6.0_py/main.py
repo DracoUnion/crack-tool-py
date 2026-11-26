@@ -1,32 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-DNiD 2.0.6.0 — Python CLI rewrite
-=================================
+DNiD 2.0.6.0 / mU.DCMA — Python CLI rewrite
+===========================================
 
-原程序：DNiD_2.0.6.0/DNiD2.exe
-        ("DNiD is a PE Identifier specifically targeting .NET compiled binaries.
-         It has basically the same features as PEiD, only written in .NET")
+本目录包含两个原程序，统一由本 CLI 提供：
 
-原程序的核心是 clsScanner.Scan：读取文件字节，把每条保护签名（字节模式，
--1 表示通配符）从文件偏移 0 处顺序匹配，匹配到第一条就返回对应的保护厂商/名称，
-否则返回 "Unknown or no protection!"。GUI 层仅负责拖放/显示，不影响判定逻辑。
+1) DNiD2.exe  — "DNiD is a PE Identifier specifically targeting .NET
+   compiled binaries. It has basically the same features as PEiD, only
+   written in .NET."（.NET 加壳/混淆标识工具，类 PEiD）
+   核心 clsScanner.Scan：读文件字节，把每条保护签名（字节模式，-1 为通配符）
+   从偏移 0 顺序匹配，命中第一条即返回名称，否则 "Unknown or no protection!"。
 
-注意：原程序用 Parallel.ForEach 并返回“最后匹配项”，因并发顺序不确定；
-本 CLI 移植为确定性的“返回首匹配”（按 SignatureList.Add 的声明顺序）。
+2) mU.DCMA.exe — "DNiD Context Menu Adder Tool"（给 DNiD 加右键菜单）
+   在 HKCR\*\shell\Scan with DNiD 2\command 写入 "<目录>\\DNiD2.exe %1"。
 
 用法：
-    python main.py <file1> [file2 ...]
+    # 扫描（默认）
+    python main.py scan <file1> [file2 ...]
+    python main.py <file1> [file2 ...]            # 省略 scan 子命令亦可
 
-输出：
-    <文件名>: <保护识别结果>
+    # 右键菜单（mU.DCMA）
+    python main.py menu <DNiD目录> [--remove] [--dry-run] [--root hkcr|hkcu]
 
-示例：
-    python main.py some_app.exe
-    some_app.exe: ConfuserEx -> Ki
+说明：
+- 原 DNiD2 用 Parallel.ForEach 返回“最后匹配项”（并发顺序不定）；本 CLI 改为
+  确定性的“按声明顺序返回首匹配”。所有内部签名 item2 均为 false（从偏移 0 匹配）。
+- menu 默认写入 HKCR（与 mU.DCMA 一致，通常需要管理员权限）；--dry-run 只打印
+  不写入；--root hkcu 可改写到 HKCU\Software\Classes（当前用户，便于安全测试）。
 
-无第三方依赖，纯标准库。签名库来自 signatures.py（自动从 DNiD2.exe
-反编译的 Signatures.SignaturesList 与 SignatureList.Add 调用顺序提取）。
+无第三方依赖，纯标准库。签名库来自 signatures.py（自动从 DNiD2.exe 反编译提取）。
 """
 
 import argparse
@@ -35,11 +38,11 @@ import sys
 
 from signatures import SIGNATURES
 
-# ---------------------------------------------------------------------------
-# FindPattern: naive scan with -1 wildcards，从 start_offset 开始。
-# 对应 clsScanner.FindPattern / SearchBytes。
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# 一、DNiD2 签名扫描
+# ===========================================================================
 def search_bytes(data, pattern, start_offset=0):
+    """FindPattern: naive scan with -1 wildcards，从 start_offset 开始。"""
     n = len(data)
     m = len(pattern)
     if n == 0 or m == 0 or start_offset > n - m or m > n:
@@ -62,11 +65,8 @@ def search_bytes(data, pattern, start_offset=0):
     return False
 
 
-# ---------------------------------------------------------------------------
-# clsScanner.Scan(byte[]): 顺序匹配所有签名，首匹配即返回，否则默认值。
-# 内部所有条目 item2 均为 False，恒从偏移 0 开始；此处保留字段以便与源对齐。
-# ---------------------------------------------------------------------------
 def scan(data):
+    """clsScanner.Scan(byte[])：顺序匹配，首匹配即返回，否则默认值。"""
     for display, pattern, _use_ep in SIGNATURES:
         if search_bytes(data, pattern, 0):
             return display
@@ -81,22 +81,95 @@ def scan_file(path):
         return "Error: %s" % e
 
 
-def main(argv=None):
-    ap = argparse.ArgumentParser(
-        description="DNiD 2.0.6.0 — Python CLI rewrite. .NET 保护/加壳标识工具（类 PEiD）")
-    ap.add_argument("files", nargs="+", metavar="FILE",
-                    help="要识别的文件（可多个）")
-    args = ap.parse_args(argv)
-
+def cmd_scan(paths):
     results = []
-    for path in args.files:
+    for path in paths:
         if not os.path.isfile(path):
             results.append((path, "Error: file not found"))
             continue
         results.append((path, scan_file(path)))
-
     for path, result in results:
         print("%s: %s" % (os.path.basename(path), result))
+    return 0
+
+
+# ===========================================================================
+# 二、mU.DCMA 右键菜单
+# ===========================================================================
+MENU_KEY = r"*\shell\Scan with DNiD 2"
+MENU_CMD = r"*\shell\Scan with DNiD 2\command"
+
+
+def cmd_menu(directory, remove=False, dry_run=False, root="hkcr"):
+    import winreg
+    base = winreg.HKEY_CLASSES_ROOT if root == "hkcr" else winreg.HKEY_CURRENT_USER
+    prefix = "" if root == "hkcr" else r"Software\Classes"
+    full_cmd_key = (prefix + "\\" + MENU_CMD) if prefix else MENU_CMD
+    full_menu_key = (prefix + "\\" + MENU_KEY) if prefix else MENU_KEY
+
+    command_value = os.path.join(directory, "DNiD2.exe") + " %1"
+
+    if dry_run:
+        print("[dry-run] root=%s" % root)
+        print("[dry-run] %s%s = %r" % (prefix + "\\" if prefix else "", MENU_CMD, command_value))
+        return 0
+
+    try:
+        if remove:
+            try:
+                winreg.DeleteKey(base, full_cmd_key)
+                print("[remove] deleted %s" % full_cmd_key)
+            except FileNotFoundError:
+                print("[remove] not present: %s" % full_cmd_key)
+            try:
+                winreg.DeleteKey(base, full_menu_key)
+                print("[remove] deleted %s" % full_menu_key)
+            except FileNotFoundError:
+                pass
+            print("Removed.")
+            return 0
+
+        # 对应 Registry.ClassesRoot.CreateSubKey(...\command) + SetValue("", ...)
+        with winreg.CreateKey(base, full_cmd_key) as k:
+            winreg.SetValueEx(k, "", 0, winreg.REG_SZ, command_value)
+        print("All done!  (%s%s -> %r)" % (prefix + "\\" if prefix else "", MENU_CMD, command_value))
+        return 0
+    except OSError as e:
+        print("Something went wrong.... :/  (%s)" % e, file=sys.stderr)
+        return 1
+
+
+# ===========================================================================
+# 入口
+# ===========================================================================
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    ap = argparse.ArgumentParser(
+        description="DNiD 2.0.6.0 / mU.DCMA — Python CLI rewrite.")
+    sub = ap.add_subparsers(dest="cmd")
+
+    p_scan = sub.add_parser("scan", help="识别 .NET 加壳/混淆（DNiD2）")
+    p_scan.add_argument("files", nargs="+", metavar="FILE")
+
+    p_menu = sub.add_parser("menu", help="添加/删除右键菜单（mU.DCMA）")
+    p_menu.add_argument("directory", help="DNiD 所在目录（用于拼 DNiD2.exe 路径）")
+    p_menu.add_argument("--remove", action="store_true", help="删除菜单项")
+    p_menu.add_argument("--dry-run", action="store_true", help="只打印不写入")
+    p_menu.add_argument("--root", choices=["hkcr", "hkcu"], default="hkcr",
+                        help="写根（默认 hkcr，与 mU.DCMA 一致；hkcu 便于测试）")
+
+    # 兼容：省略子命令时按 scan 处理
+    if not argv or argv[0] not in ("scan", "menu", "-h", "--help"):
+        args = ap.parse_args(["scan"] + argv)
+        return cmd_scan(args.files)
+
+    args = ap.parse_args(argv)
+    if args.cmd == "scan":
+        return cmd_scan(args.files)
+    if args.cmd == "menu":
+        return cmd_menu(args.directory, remove=args.remove,
+                        dry_run=args.dry_run, root=args.root)
+    ap.print_help()
     return 0
 
 

@@ -13,8 +13,11 @@
 
 ## 用法
 
+扫描（默认子命令）：
+
 ```
-python main.py <file1> [file2 ...]
+python main.py scan <file1> [file2 ...]
+python main.py <file1> [file2 ...]          # 省略 scan 亦可
 ```
 
 示例：
@@ -23,6 +26,17 @@ python main.py <file1> [file2 ...]
 python main.py some_app.exe
 some_app.exe: ConfuserEx -> Ki
 ```
+
+右键菜单（mU.DCMA，对应 `mU.DCMA.exe`）：
+
+```
+python main.py menu <DNiD目录> [--remove] [--dry-run] [--root hkcr|hkcu]
+```
+
+- 默认写入 `HKCR\*\shell\Scan with DNiD 2\command` = `<目录>\DNiD2.exe %1`
+  （与原 mU.DCMA 的 `Environment.CurrentDirectory + "\DNiD2.exe %1"` 一致）。
+- `--dry-run` 只打印不写入；`--root hkcu` 改写到 `HKCU\Software\Classes`
+  （当前用户，便于安全测试）；`--remove` 删除菜单项。
 
 ## 结构
 
