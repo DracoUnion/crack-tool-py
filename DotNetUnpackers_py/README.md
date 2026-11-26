@@ -33,3 +33,14 @@ python main.py --help
 原程序：`DotNetUnpackers/DePhe.exe, DeSmart.exe`
 
 反编译显示方法名为 `?428?`/`?429?`（**被混淆**），逐函数逆向被混淆阻断。已移植 CLI 契约与 .NET 识别。
+
+
+## x32dbg 脱壳尝试结果（CTF）
+
+对 `ScanId.exe` 做 x32dbg 脱壳尝试（.NET 程序在 CLR 下运行）：
+1. LoadBinary 后运行，CLR 启动，`scanid.exe` 模块映射到 `0xAE0000`（2.5MB）；
+2. `DumpModule scanid.exe` 导出内存镜像到 `scanid_dumped.exe`；
+3. 反编译内存镜像报 `Missing data directory`（内存镜像 PE 数据目录被清零，需重建）；
+4. **关键结论**：ScanId 的混淆是**元数据符号重命名**（`ykSTlfndjcWO4c8Wm7` 等），
+   非压缩壳；从内存 DUMP 得到的仍是同一套混淆程序集，且核心检测逻辑在 de4dot 库内。
+   因此“脱壳”不改变混淆本质，无法据此产出忠实的 Python 引擎。
