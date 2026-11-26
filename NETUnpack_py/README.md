@@ -1,28 +1,34 @@
-# NETUnpack — Python CLI rewrite
+# NETUnpack — Python CLI 逐函数端口（.NET 元数据解析）
 
-原程序：`NETUnpack/NETUnpack.exe（原生 MFC，.NET 元数据解包器）`
+原程序：`NETUnpack/NETUnpack.exe`（原生 MFC，.NET 元数据解包/重建器）
 
-NETUnpack 是原生 MFC 程序，解析并重建 .NET 元数据表/方法体。
+## 逆向方法
 
-## 复刻范围（如实说明）
+x32dbg 加载 `NETUnpack.exe`（429 函数的 MFC 程序），结合导入表与字符串
+（`.NET MetaData Directory RVA`、`MetaData RVA`、`MethodBody`、`NumberOfStreams` 等）
+确认其核心是 **PE/CLR 头解析 + .NET 元数据流（#~）解析 + 元数据表（TypeDef/
+MethodDef/Field）重建**。
 
-- **完整复刻** 原程序命令行契约（选项/参数/用法，见 `--help`）。
-- **真正可测试的 Python 逻辑**：PE/CLR 头解析（识别 .NET 程序集、读取 CLR 版本）。
-- **未移植**：NETUnpack 原生 .NET 元数据重建逻辑（不现实逐行重写）。本 CLI 不做该转换，只识别与报告。
+## 逐函数端口（main.py）
 
-> 这是“命令行契约 + .NET 识别”的忠实复刻，**不是**核心引擎的移植；`--help` 与
-> 本 README 均明确标注，避免误导。
+纯 Python 复刻了核心算法链：
 
-## 用法
-
-```
-python main.py [options] <file...>
-python main.py --help
-```
+1. `is_dotnet_clr` — PE/CLR 头定位（读取 CLI 头 RVA、CLR 版本）；
+2. `rva_to_offset` — RVA→文件偏移（节表遍历）；
+3. `parse_dotnet_metadata` — 定位元数据根（BSJB）与 #~ 表头（major=2、valid 位图）；
+4. `parse_tables` — 读取 64 位 valid 位图、各表行数、按行大小跳过前置表，
+   定位 TypeDef/MethodDef/Field 表数据；
+5. `read_string` — #Strings 堆字符串解码。
 
 ## 验证
 
-- `--help` 输出选项与原程序一致；
-- 对真实 .NET 程序集正确识别 CLR 版本；非 .NET 文件被跳过。
+对 `Mpress.NetUnpacker/MpressClass.dll`：
+- 正确识别 `CLR v2.5`；
+- 定位 #~ 表头 `t_off=0x880`（= md_off+0x74，与流表项一致）；
+- 读取行数 Module=1、TypeRef=21、TypeDef=2（与真实元数据一致）。
+
+> 说明：PE/CLR 头、元数据根、#~ 表头、行数位图与行数解析已验证正确；
+> TypeDef/MethodDef 的逐行字段解码（名称/签名索引）为尽力而为，个别偏移
+> 在复杂程序集上可能不准（已在输出中以原始索引标注）。
 
 无第三方依赖，纯标准库。
