@@ -13,6 +13,12 @@ NETDeob.Console 解析命令后由 NETDeob.Core.dll 执行去混淆。
 > 这是“命令行契约 + .NET 识别”的忠实复刻，**不是**核心引擎的移植；`--help` 与
 > 本 README 均明确标注，避免误导。
 
+## 逐函数端口（NETDeob.Core.SevenZip.CRC）
+
+`netdeob_crc.py` 逐函数移植了 `NETDeob.Core.dll` 反编译中的 `SevenZip.CRC` 类
+（多项式 0xEDB88320 反射表、`UpdateByte`/`Update`/`GetDigest`/`CalculateDigest`/
+`VerifyDigest`），与 `zlib.crc32` 交叉验证一致（自测 `python netdeob_crc.py` → ALL OK）。
+
 ## 用法
 
 ```
