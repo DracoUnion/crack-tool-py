@@ -18,6 +18,17 @@
 > 这是“命令行契约 + 轻量检测”的忠实复刻，**不是**完整去混淆引擎的移植。README 与
 > `--help` 均明确标注，避免误导。
 
+## 逐函数端口（de4dot.code.Utils）
+
+`de4dot_utils.py` 逐函数移植了 `de4dot.code.dll` 反编译（ICSharpCode.Decompiler）
+中的 `de4dot.Utils` 静态类纯函数（与 IL 操作无关、可忠实移植）：
+
+`unique` / `toCsharpString` / `shellEscape` / `removeNewlines` / `getFullPath` /
+`randomName` / `getBaseName` / `getDirName` / `StartsWith` /
+`getAssemblySimpleName` / `pathExists` / `fileExists`。
+
+自测：`python de4dot_utils.py` → `ALL OK`。`toCsharpString` 已与 C# 源码逐字符核对一致。
+
 ## 用法
 
 ```
