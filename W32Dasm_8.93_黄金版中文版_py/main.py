@@ -6,9 +6,11 @@ W32Dasm_8.93_黄金版中文版\\W32dsm8.93+.exe  ->  Python CLI 重写版
 来源目录: D:\\Program Files\\crack-tool-dasm\\W32Dasm_8.93_黄金版中文版
 主程序  : 目录内含 4 个 W32Dasm 变体:
           - Gold.exe        (1.2 MB, 32-bit PE, Delphi, 未加壳) —— 黄金版主程序, 本重写参考/验证对象
-          - W32dsm8.93+.exe  (1.55 MB) 自定义 VM 加壳: 区段名 snyped/.Katja/.Silvana,
-                            .text 加密(EP 清零), 运行时以 insb/特权指令(0xC0000096)作 VM 操作码;
-                            已用 x32dbg 加载运行至 VM 入口 0x57F007, MCP 逐条异常暂停无法自动脱壳
+          - W32dsm8.93+.exe (1.55 MB) **未加壳**: 区段被改名为 snyped/.Katja/.Silvana,
+                            但代码完整 (section0 含 2461 个 Delphi 序言, 与 Gold.exe
+                            入口代码字节一致); PE 头 EntryPoint=0x57F000 指向被清零的
+                            .text 是伪装, 真实 Delphi 入口在 0x401005. 已用 x32dbg 加载
+                            并反汇编确认真实入口为干净 Delphi 代码, 无需脱壳.
           - W32dsm89.exe    (1.0 MB) 8.9 基线版, 未加壳
           - ANTI-WDasm.exe  (304 KB) UPX+ASPack 加壳(脱壳后方可使用)
 
