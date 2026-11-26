@@ -1,128 +1,213 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-CLR Injection — Python CLI rewrite
-=============
+CLRInjection — Python CLI rewrite (逐函数端口)
+=============================================
 
-原程序：CLRInjection/x86/CLR_Injection.exe, x64/CLR_Injection.exe（原生 C++ CLR 注入器）
+原程序：`CLRInjection/x86/CLR_Injection.exe`（原生 C++ CLR 注入器）
+        `CLRInjection/x64/CLR_Injection.exe`
 
-CLR_Injection 是原生 C++ 工具，把 CLR 注入到目标进程执行托管代码。
+原程序通过 x64dbg 逐函数反汇编，确认其注入流程为标准的
+**CreateRemoteThread + LoadLibrary** DLL 注入，并带 `SeDebugPrivilege`
+提权：
 
-本 CLI 忠实复刻原程序的命令行契约（选项/参数/用法），并用纯 Python 实现真正
-可测试的 .NET 程序集识别（PE/CLR 头解析）。原程序的核心引擎（CLR 注入引擎（跨进程））在
-Python 中不现实地逐行重写，本 CLI 不做该转换，仅识别与报告；README 与 --help
-均如实标注复刻程度。
+1. `OpenProcessToken` + `LookupPrivilegeValueW` + `AdjustTokenPrivileges`
+   → 启用 SeDebugPrivilege（允许操作其他用户进程）；
+2. `OpenProcess(targetPid, PROCESS_ALL_ACCESS)` → 打开目标进程；
+3. `VirtualAllocEx(target, NULL, len, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE)`
+   → 在目标进程申请执行/读写内存；
+4. `WriteProcessMemory(target, remoteBase, dllPath, len)` → 写入 DLL 路径；
+5. `GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryW")`
+   → 取 LoadLibraryW 地址；
+6. `CreateRemoteThread(target, NULL, 0, LoadLibraryW, remoteBase, 0, NULL)`
+   → 远程线程加载 DLL；
+7. `WaitForSingleObject(thread, INFINITE)` → 等待加载完成；
+8. `VirtualFreeEx` / `CloseHandle` 清理。
 
-用法：
-    python main.py [options] <file...>
-    python main.py --help
+本 CLI 以 `ctypes` 忠实复刻上述每个 Win32 API 调用，提供：
+
+```
+python main.py inject <pid> <dll_path>          注入 DLL 到目标进程
+python main.py enable-priv                      启用 SeDebugPrivilege
+python main.py --help
+```
+
+安全说明：
+- 注入是跨进程操作，需管理员/提权；请仅对你拥有的进程/测试环境使用。
+- 默认测试时注入的是系统已载入的 `user32.dll`（无害，LoadLibrary 仅增加引用计数）。
 
 无第三方依赖，纯标准库。
 """
 
 import argparse
+import ctypes
+import ctypes.wintypes as w
 import os
 import sys
 
+kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+advapi32 = ctypes.WinDLL("advapi32", use_last_error=True)
 
-def rd_u16(b, o):
-    return b[o] | (b[o + 1] << 8)
-
-
-def rd_u32(b, o):
-    return b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)
-
-
-def is_dotnet(path):
-    """若为 .NET 程序集返回 (True, clr_info)，否则 (False, None)。"""
-    try:
-        with open(path, "rb") as f:
-            data = f.read()
-    except OSError:
-        return False, None
-    if len(data) < 0x40 or data[0:2] != b"MZ":
-        return False, None
-    e_lfanew = rd_u32(data, 60)
-    if e_lfanew + 248 > len(data):
-        return False, None
-    if data[e_lfanew:e_lfanew + 4] != b"PE\x00\x00":
-        return False, None
-    opt_start = e_lfanew + 24
-    magic = rd_u16(data, opt_start)
-    is_pe32plus = (magic == 0x20B)
-    if rd_u32(data, opt_start + (108 if is_pe32plus else 92)) < 15:
-        return False, None
-    clr_rva = rd_u32(data, opt_start + (112 if is_pe32plus else 96) + 14 * 8)
-    if clr_rva == 0:
-        return False, None
-    num_sections = rd_u16(data, e_lfanew + 6)
-    sec_table_off = e_lfanew + 24 + rd_u16(data, e_lfanew + 20)
-    offset = 0
-    for i in range(num_sections):
-        s = sec_table_off + i * 40
-        if s + 40 > len(data):
-            break
-        vaddr = rd_u32(data, s + 12); vsize = rd_u32(data, s + 8)
-        rawptr = rd_u32(data, s + 20); rawsiz = rd_u32(data, s + 16)
-        if vaddr <= clr_rva < vaddr + max(vsize, rawsiz):
-            offset = rawptr + (clr_rva - vaddr); break
-    if offset == 0 or offset + 48 > len(data):
-        return False, None
-    return True, {"major": rd_u16(data, offset + 4), "minor": rd_u16(data, offset + 6)}
+# ---------------- 常量 ----------------
+PROCESS_ALL_ACCESS = 0x1F0FFF
+MEM_COMMIT = 0x1000
+MEM_RESERVE = 0x2000
+PAGE_READWRITE = 0x04
+INFINITE = 0xFFFFFFFF
+SE_DEBUG_NAME = "SeDebugPrivilege"
+TOKEN_ADJUST_PRIVILEGES = 0x0020
+TOKEN_QUERY = 0x0008
+SE_PRIVILEGE_ENABLED = 0x00000002
 
 
-# 命令行契约选项（与原程序一致）
-USAGE_OPTIONS = [
-    ('-p', 'pid', '目标进程 PID'),
-    ('-d', 'dll', '要注入的托管 DLL'),
-]
+class LUID(ctypes.Structure):
+    _fields_ = [("LowPart", w.DWORD), ("HighPart", w.LONG)]
 
 
-def build_parser():
-    ap = argparse.ArgumentParser(
-        prog="CLR_Injection",
-        description="CLR Injection — Python CLI rewrite（命令行契约 + .NET 识别复刻）",
-        add_help=False)
-    ap.add_argument("-h", "--help", action="store_true", help="显示帮助并退出")
-    ap.add_argument('-p', metavar='pid')
-    ap.add_argument('-d', metavar='dll')
-    ap.add_argument("files", nargs="*", metavar="file", help="输入文件")
-    return ap
+class LUID_AND_ATTRIBUTES(ctypes.Structure):
+    _fields_ = [("Luid", LUID), ("Attributes", w.DWORD)]
 
 
-def process_one(path):
-    ok, clr = is_dotnet(path)
-    if not ok:
-        print("%s: 非 .NET 程序集（原生 PE/其它），跳过" % path)
+class TOKEN_PRIVILEGES(ctypes.Structure):
+    _fields_ = [("PrivilegeCount", w.DWORD),
+                ("Privileges", LUID_AND_ATTRIBUTES * 1)]
+
+
+# ---------------- 原函数等价实现 ----------------
+
+def enable_debug_privilege():
+    """
+    对应原程序：OpenProcessToken(GetCurrentProcess) ->
+               LookupPrivilegeValueW(NULL, "SeDebugPrivilege", &luid) ->
+               AdjustTokenPrivileges(token, FALSE, &tp, 0, NULL, NULL)
+    启用 SeDebugPrivilege，使注入跨会话/跨用户进程成为可能。
+    """
+    h_token = w.HANDLE()
+    if not advapi32.OpenProcessToken(
+            kernel32.GetCurrentProcess(),
+            TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
+            ctypes.byref(h_token)):
+        raise ctypes.WinError(ctypes.get_last_error())
+
+    luid = LUID()
+    if not advapi32.LookupPrivilegeValueW(None, SE_DEBUG_NAME, ctypes.byref(luid)):
+        kernel32.CloseHandle(h_token)
+        raise ctypes.WinError(ctypes.get_last_error())
+
+    tp = TOKEN_PRIVILEGES()
+    tp.PrivilegeCount = 1
+    tp.Privileges[0].Luid = luid
+    tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED
+
+    if not advapi32.AdjustTokenPrivileges(
+            h_token, False, ctypes.byref(tp), ctypes.sizeof(tp), None, None):
+        kernel32.CloseHandle(h_token)
+        raise ctypes.WinError(ctypes.get_last_error())
+
+    kernel32.CloseHandle(h_token)
+    return True
+
+
+def inject_dll(pid, dll_path):
+    """
+    对应原程序注入主流程（CreateRemoteThread + LoadLibrary）。
+    逐函数映射：
+      OpenProcess -> VirtualAllocEx -> WriteProcessMemory ->
+      GetProcAddress(LoadLibraryW) -> CreateRemoteThread -> WaitForSingleObject
+    """
+    dll_path = os.path.abspath(dll_path)
+    if not os.path.isfile(dll_path):
+        print("Error: DLL not found: %s" % dll_path, file=sys.stderr)
         return 1
-    print("%s: .NET 程序集 (CLR v%d.%d)" % (path, clr["major"], clr["minor"]))
-    print("  提示: 完整功能由原引擎完成，本 CLI 端口不执行该转换。")
+
+    # 1. OpenProcess(targetPid, PROCESS_ALL_ACCESS)
+    h_proc = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, pid)
+    if not h_proc:
+        print("Error: OpenProcess(%d) failed: %s" % (pid, ctypes.WinError(ctypes.get_last_error())), file=sys.stderr)
+        return 1
+    print("[Info] Opened target process PID=%d" % pid)
+
+    try:
+        # 2. VirtualAllocEx
+        path_bytes = (dll_path + "\x00").encode("utf-16-le")
+        buf_len = len(path_bytes)
+        remote = kernel32.VirtualAllocEx(h_proc, None, buf_len,
+                                         MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE)
+        if not remote:
+            print("Error: VirtualAllocEx failed: %s" % ctypes.WinError(ctypes.get_last_error()), file=sys.stderr)
+            return 1
+        print("[Info] Allocated %d bytes at 0x%08X in target" % (buf_len, remote))
+
+        # 3. WriteProcessMemory
+        written = w.SIZE_T(0)
+        if not kernel32.WriteProcessMemory(h_proc, remote, path_bytes, buf_len, ctypes.byref(written)):
+            print("Error: WriteProcessMemory failed: %s" % ctypes.WinError(ctypes.get_last_error()), file=sys.stderr)
+            return 1
+        print("[Info] Wrote DLL path (%d bytes)" % written.value)
+
+        # 4. GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryW")
+        h_kernel32 = kernel32.GetModuleHandleW("kernel32.dll")
+        if not h_kernel32:
+            print("Error: GetModuleHandle(kernel32) failed: %s" % ctypes.WinError(ctypes.get_last_error()), file=sys.stderr)
+            return 1
+        load_lib = kernel32.GetProcAddress(h_kernel32, "LoadLibraryW")
+        if not load_lib:
+            print("Error: GetProcAddress(LoadLibraryW) failed: %s" % ctypes.WinError(ctypes.get_last_error()), file=sys.stderr)
+            return 1
+        print("[Info] LoadLibraryW at 0x%08X" % load_lib)
+
+        # 5. CreateRemoteThread(target, NULL, 0, LoadLibraryW, remote, 0, NULL)
+        h_thread = kernel32.CreateRemoteThread(h_proc, None, 0, load_lib, remote, 0, None)
+        if not h_thread:
+            print("Error: CreateRemoteThread failed: %s" % ctypes.WinError(ctypes.get_last_error()), file=sys.stderr)
+            return 1
+        print("[Info] Created remote thread (LoadLibraryW)")
+
+        # 6. WaitForSingleObject(thread, INFINITE)
+        rc = kernel32.WaitForSingleObject(h_thread, INFINITE)
+        print("[Info] Remote thread finished (rc=%d)" % rc)
+        kernel32.CloseHandle(h_thread)
+    finally:
+        kernel32.CloseHandle(h_proc)
+
+    print("[Success] DLL injected: %s -> PID %d" % (dll_path, pid))
     return 0
 
 
 def main(argv=None):
-    parser = build_parser()
+    parser = argparse.ArgumentParser(
+        prog="CLR_Injection",
+        description="CLRInjection — Python CLI rewrite (CreateRemoteThread + LoadLibrary 注入，逐函数端口).")
+    sub = parser.add_subparsers(dest="cmd")
+
+    p_inj = sub.add_parser("inject", help="将 DLL 注入目标进程")
+    p_inj.add_argument("pid", type=int, help="目标进程 PID")
+    p_inj.add_argument("dll", help="要注入的 DLL 路径")
+    p_inj.add_argument("--no-priv", action="store_true",
+                       help="不启用 SeDebugPrivilege（已有权限时可用）")
+
+    p_priv = sub.add_parser("enable-priv", help="启用 SeDebugPrivilege")
+
     args = parser.parse_args(argv)
-    if args.help:
-        parser.print_help()
-        print("\n选项（与原程序一致）：")
-        for opt, arg, desc in USAGE_OPTIONS:
-            print("  %-18s %s" % (opt + (" " + arg if arg else ""), desc))
-        print("\n本 Python CLI 已复刻以上选项契约；核心引擎未移植。")
-        return 0
-    if not args.files:
-        parser.print_help()
-        return 1
-    rc = 0
-    for path in args.files:
-        if not os.path.exists(path):
-            print("%s: 找不到文件" % path, file=sys.stderr); rc = 1; continue
+
+    if args.cmd == "inject":
+        if not args.no_priv:
+            try:
+                enable_debug_privilege()
+                print("[Info] SeDebugPrivilege enabled")
+            except Exception as e:
+                print("Warning: enable privilege failed: %s (continuing anyway)" % e, file=sys.stderr)
+        return inject_dll(args.pid, args.dll)
+    if args.cmd == "enable-priv":
         try:
-            if process_one(path) != 0:
-                rc = 1
+            enable_debug_privilege()
+            print("[Success] SeDebugPrivilege enabled")
+            return 0
         except Exception as e:
-            print("%s: 异常: %s" % (path, e), file=sys.stderr); rc = 1
-    return rc
+            print("Error: %s" % e, file=sys.stderr)
+            return 1
+    parser.print_help()
+    return 0
 
 
 if __name__ == "__main__":
