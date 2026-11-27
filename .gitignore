@@ -1,2 +1,4 @@
 __pycache__/
 *.pyc
+_dumps/
+_pe_analyze.py
