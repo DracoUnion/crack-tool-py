@@ -1,0 +1,35 @@
+{
+  "name": "dup_py sample project",
+  "description": "exercises offset / va / searchreplace / text / verify entries",
+  "backup": true,
+  "in_place": false,
+  "checks": [
+    { "kind": "verify", "type": "crc32", "expected": "0x6B0F53F2",
+      "description": "original file CRC32" }
+  ],
+  "patches": [
+    { "kind": "offset", "offset": "0x200",
+      "data": "1122334455667788",
+      "check": "DEADBEEFCAFEBABE",
+      "description": "raw offset patch at 0x200 (verify original bytes first)" },
+    { "kind": "va", "va": "0x4010A0",
+      "data": "41424344",
+      "description": "VA patch 0x4010A0 (raw 0x2A0) -> 'ABCD' over 0x90 filler" },
+    { "kind": "searchreplace",
+      "find": "4D 41 52 4B 45 52 34 32",
+      "replace": "50 41 54 43 48 45 44 21",
+      "count": 1,
+      "description": "search&replace MARKER42 -> PATCHED!" },
+    { "kind": "text",
+      "pattern": "WORLD",
+      "replacement": "EARTH",
+      "encoding": "latin-1",
+      "count": 1,
+      "description": "regex text patch WORLD -> EARTH (bytes regex)" },
+    { "kind": "registry",
+      "root": "HKCU", "key": "Software\\dup_py\\Test",
+      "name": "Patched", "type": "REG_DWORD", "data": "1",
+      "emit": true,
+      "description": "emit registry patch (.reg style)" }
+  ]
+}
