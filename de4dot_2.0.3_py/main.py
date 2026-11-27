@@ -293,10 +293,15 @@ def process_one(path, out_dir=None, detect_only=False):
     if not ok:
         print("%s: 非 .NET 程序集，跳过" % path)
         return 1
-    is_obf, reason = detect_obfuscation(path)
     if detect_only:
-        print("%s: %s (CLR v%d.%d)" % (path, reason, clr["major_runtime"], clr["minor_runtime"]))
+        try:
+            from deobfuscate_core import analyze, format_report
+            print(format_report(analyze(path)))
+        except Exception as e:
+            print("%s: 分析失败: %s" % (path, e), file=sys.stderr)
+            return 1
         return 0
+    is_obf, reason = detect_obfuscation(path)
     if is_obf:
         print("%s: 疑似被混淆 (%s)，此 CLI 版本不执行去混淆（原引擎未移植）" % (path, reason))
         return 1

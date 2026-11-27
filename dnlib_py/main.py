@@ -217,6 +217,7 @@ class Metadata:
             while (p - self.root) % 4 != 0:               # 名称补齐到 4 字节
                 p += 1
             self.streams[nm.decode("latin1")] = (self.root + st_off, st_size)
+        self._cache = {}
         self._parse_tables()
 
     def stream(self, name):
@@ -362,6 +363,8 @@ class Metadata:
         return u32(self.pe.data, off)
 
     def typedefs(self):
+        if "typedefs" in self._cache:
+            return self._cache["typedefs"]
         n, off = self.rows("TypeDef")
         d = self.pe.data
         ext_sz = self._coded_idx([0x02, 0x01, 0x1B], 2)
@@ -378,9 +381,12 @@ class Metadata:
             out.append({"flags": flags, "name": self.string(name_i),
                         "ns": self.string(ns_i), "extends": extends,
                         "field_list": field_list, "method_list": method_list})
+        self._cache["typedefs"] = out
         return out
 
     def methods(self):
+        if "methods" in self._cache:
+            return self._cache["methods"]
         n, off = self.rows("MethodDef")
         d = self.pe.data
         prm_sz = self._simple_idx(0x08)
@@ -394,9 +400,12 @@ class Metadata:
             param = self._read_idx(off, prm_sz); off += prm_sz
             out.append({"rva": rva, "impl": impl, "flags": flags,
                         "name": self.string(name_i), "sig": sig, "param": param})
+        self._cache["methods"] = out
         return out
 
     def fields(self):
+        if "fields" in self._cache:
+            return self._cache["fields"]
         n, off = self.rows("Field")
         d = self.pe.data
         out = []
@@ -405,10 +414,13 @@ class Metadata:
             name_i = self._read_idx(off, self.str_sz); off += self.str_sz
             sig = self._read_idx(off, self.blob_sz); off += self.blob_sz
             out.append({"flags": flags, "name": self.string(name_i), "sig": sig})
+        self._cache["fields"] = out
         return out
 
     # ---- 成员解析（用于反编译/IL 符号化） ----
     def typerefs(self):
+        if "typerefs" in self._cache:
+            return self._cache["typerefs"]
         n, off = self.rows("TypeRef")
         d = self.pe.data
         rs_sz = self._coded_idx([0x00, 0x1A, 0x23, 0x01], 2)
@@ -419,9 +431,12 @@ class Metadata:
             ns_i = self._read_idx(off, self.str_sz); off += self.str_sz
             out.append({"rs": rs, "name": self.string(name_i),
                         "ns": self.string(ns_i)})
+        self._cache["typerefs"] = out
         return out
 
     def memberrefs(self):
+        if "memberrefs" in self._cache:
+            return self._cache["memberrefs"]
         n, off = self.rows("MemberRef")
         d = self.pe.data
         mrp_sz = self._coded_idx([0x02, 0x01, 0x1A, 0x06, 0x1B], 3)
@@ -431,6 +446,7 @@ class Metadata:
             name_i = self._read_idx(off, self.str_sz); off += self.str_sz
             sig = self._read_idx(off, self.blob_sz); off += self.blob_sz
             out.append({"mrp": mrp, "name": self.string(name_i), "sig": sig})
+        self._cache["memberrefs"] = out
         return out
 
     def userstring(self, idx):

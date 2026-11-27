@@ -53,3 +53,21 @@ python main.py -r c:\my\files -ro c:\my\output
 - 非 .NET 文件被跳过。
 
 无第三方依赖，纯标准库。
+## 去混淆分析核心（deobfuscate_core.py）
+
+基于同仓 `dnlib_py` 元数据引擎，解析元数据 + 方法体 IL，识别常见混淆特征：
+
+- **字符串加密**：返回 `string` 且带 `int/token` 参数、被多处用常量整数调用的
+  方法（经典 `string Decrypt(int id)` 模式）；
+- **代理/转发方法**：方法体仅 `ldarg.0; call Target; ret`；
+- **控制流平坦化**：含 ≥5 目标 `switch` 且存在回边跳转；
+- **标识符重命名**：全符号 / 极短随机名 的类型/方法/字段统计；
+- **P/Invoke**：`pinvokeimpl` 方法计数。
+
+`-d` 检测模式即调用此核心输出带证据的报告。这是 de4dot.code 的**分析核心**
+忠实子集；字节级改写需完整元数据写入器，超出本核心范围。
+
+```
+python deobfuscate_core.py <assembly>
+python main.py -d <assembly>
+```
