@@ -370,12 +370,13 @@ class Metadata:
         out = []
         for _ in range(n):
             flags = u32(d, off); off += 4
-            name = self._read_idx(off, self.str_sz); off += self.str_sz
-            ns = self._read_idx(off, self.str_sz); off += self.str_sz
+            name_i = self._read_idx(off, self.str_sz); off += self.str_sz
+            ns_i = self._read_idx(off, self.str_sz); off += self.str_sz
             extends = self._read_idx(off, ext_sz); off += ext_sz
             field_list = self._read_idx(off, fld_sz); off += fld_sz
             method_list = self._read_idx(off, mth_sz); off += mth_sz
-            out.append({"flags": flags, "name": name, "ns": ns, "extends": extends,
+            out.append({"flags": flags, "name": self.string(name_i),
+                        "ns": self.string(ns_i), "extends": extends,
                         "field_list": field_list, "method_list": method_list})
         return out
 
@@ -388,10 +389,11 @@ class Metadata:
             rva = u32(d, off); off += 4
             impl = u16(d, off); off += 2
             flags = u16(d, off); off += 2
-            name = self._read_idx(off, self.str_sz); off += self.str_sz
+            name_i = self._read_idx(off, self.str_sz); off += self.str_sz
             sig = self._read_idx(off, self.blob_sz); off += self.blob_sz
             param = self._read_idx(off, prm_sz); off += prm_sz
-            out.append({"rva": rva, "impl": impl, "flags": flags, "name": name, "sig": sig, "param": param})
+            out.append({"rva": rva, "impl": impl, "flags": flags,
+                        "name": self.string(name_i), "sig": sig, "param": param})
         return out
 
     def fields(self):
@@ -400,10 +402,73 @@ class Metadata:
         out = []
         for _ in range(n):
             flags = u16(d, off); off += 2
-            name = self._read_idx(off, self.str_sz); off += self.str_sz
+            name_i = self._read_idx(off, self.str_sz); off += self.str_sz
             sig = self._read_idx(off, self.blob_sz); off += self.blob_sz
-            out.append({"flags": flags, "name": name, "sig": sig})
+            out.append({"flags": flags, "name": self.string(name_i), "sig": sig})
         return out
+
+    # ---- 成员解析（用于反编译/IL 符号化） ----
+    def typerefs(self):
+        n, off = self.rows("TypeRef")
+        d = self.pe.data
+        rs_sz = self._coded_idx([0x00, 0x1A, 0x23, 0x01], 2)
+        out = []
+        for _ in range(n):
+            rs = self._read_idx(off, rs_sz); off += rs_sz
+            name_i = self._read_idx(off, self.str_sz); off += self.str_sz
+            ns_i = self._read_idx(off, self.str_sz); off += self.str_sz
+            out.append({"rs": rs, "name": self.string(name_i),
+                        "ns": self.string(ns_i)})
+        return out
+
+    def memberrefs(self):
+        n, off = self.rows("MemberRef")
+        d = self.pe.data
+        mrp_sz = self._coded_idx([0x02, 0x01, 0x1A, 0x06, 0x1B], 3)
+        out = []
+        for _ in range(n):
+            mrp = self._read_idx(off, mrp_sz); off += mrp_sz
+            name_i = self._read_idx(off, self.str_sz); off += self.str_sz
+            sig = self._read_idx(off, self.blob_sz); off += self.blob_sz
+            out.append({"mrp": mrp, "name": self.string(name_i), "sig": sig})
+        return out
+
+    def userstring(self, idx):
+        if idx == 0:
+            return ""
+        base = self.streams.get("#US", (0, 0))[0]
+        if base == 0:
+            return ""
+        d = self.pe.data
+        p = base + idx
+        b0 = d[p]
+        ln = b0 & 0x7F; p += 1
+        if b0 & 0x80:
+            ln |= (d[p] & 0x7F) << 7; p += 1
+        return d[p:p + ln * 2].decode("utf-16-le", errors="replace")
+
+    def token_info(self, tok):
+        """把 0x%08X 记号解析成可读描述：(种类, 名)。"""
+        t = tok >> 24; ridx = tok & 0xFFFFFF
+        if t == 0x70:                                   # UserString
+            return ("string", repr(self.userstring(ridx)))
+        tds = self.typedefs(); mds = self.methods(); fds = self.fields()
+        if t == 0x02 and ridx <= len(tds):              # TypeDef
+            td = tds[ridx - 1]; return ("type", td["ns"] + "." + td["name"])
+        if t == 0x06 and ridx <= len(mds):              # MethodDef
+            return ("method", mds[ridx - 1]["name"])
+        if t == 0x04 and ridx <= len(fds):              # Field
+            return ("field", fds[ridx - 1]["name"])
+        if t == 0x0A:                                   # MemberRef
+            mrs = self.memberrefs()
+            if ridx <= len(mrs): return ("memberref", mrs[ridx - 1]["name"])
+        if t == 0x01:                                   # TypeRef
+            trs = self.typerefs()
+            if ridx <= len(trs): return ("typeref", trs[ridx - 1]["ns"] + "." + trs[ridx - 1]["name"])
+        if t == 0x1A:                                   # ModuleRef
+            return ("moduleref", self.string(ridx))
+        return ("token", "0x%08X" % tok)
+
 
     def method_body(self, rva):
         """读取方法体，返回 (header_size, code_size, local_var_sig, code_bytes)。"""
@@ -505,25 +570,29 @@ def main(argv=None):
             idx = args.il - 1
         else:
             for i, m in enumerate(methods):
-                if md.string(m["name"]) == target:
+                if m["name"] == target:
                     idx = i; break
         if idx is None or idx >= len(methods):
             print("method not found", file=sys.stderr)
             return 1
         m = methods[idx]
         body = md.method_body(m["rva"])
-        print("\n// %s %s @ RVA 0x%X" % (md.string(m["name"]), "", m["rva"]))
+        print("\n// %s @ RVA 0x%X" % (m["name"], m["rva"]))
         if body is None:
             print("  (no body / external)")
             return 0
         hdr, csize, local, code = body
         print("// header=%d code_size=%d local_var_sig=0x%X" % (hdr, csize, local))
         for off, mnem, operand in read_il(code):
-            print("  IL_%04X: %-14s %s" % (off, mnem, operand))
+            extra = ""
+            if operand.startswith("0x") and len(operand) == 10:
+                kind, nm = md.token_info(int(operand, 16))
+                extra = "   // %s %s" % (kind, nm)
+            print("  IL_%04X: %-14s %s%s" % (off, mnem, operand, extra))
         return 0
 
     for td in typedefs:
-        ns = md.string(td["ns"]); nm = md.string(td["name"])
+        ns = td["ns"]; nm = td["name"]
         print("  class %s%s" % (ns + "." if ns else "", nm))
     return 0
 
