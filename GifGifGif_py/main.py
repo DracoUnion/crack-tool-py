@@ -55,9 +55,12 @@ def grab_region(rect):
         return None
     img = img.convertToFormat(QImage.Format_RGB888)
     w, h = img.width(), img.height()
-    ptr = img.constBits()
-    import ctypes
-    buf = ctypes.string_at(ptr, img.sizeInBytes())
+    raw = img.constBits()
+    try:
+        buf = bytes(raw)
+    except Exception:
+        import ctypes
+        buf = ctypes.string_at(int(raw), img.sizeInBytes())
     return Image.frombytes("RGB", (w, h), buf, "raw", "RGB")
 
 
